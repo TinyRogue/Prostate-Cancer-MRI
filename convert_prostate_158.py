@@ -54,7 +54,7 @@ def process_case(case_path, case_number, images_dir, labels_dir):
     else:
         raise FileNotFoundError(f'No ADC Tumor Reader file found for case {case_number}!')
 
-def process_directory(source_dir, images_dir, labels_dir, start_case_number=0):
+def process_directory(source_dir, images_dir, labels_dir, start_case_number=1):
     files = [f for f in os.listdir(source_dir) if not f.startswith('.')]
     for case_number, case_dir in enumerate(sorted(files), start=start_case_number):
         case_path = os.path.join(source_dir, case_dir)
@@ -63,7 +63,7 @@ def process_directory(source_dir, images_dir, labels_dir, start_case_number=0):
         else:
             raise NotADirectoryError(f'{case_path} is not a directory!')
 
-process_directory(source_train_dir, imagesTr_dir, labelsTr_dir, start_case_number=19)
+process_directory(source_train_dir, imagesTr_dir, labelsTr_dir, start_case_number=20)
 print("Training files copied and renamed successfully.")
 
 process_directory(source_test_dir, imagesTs_dir, labelsTs_dir)

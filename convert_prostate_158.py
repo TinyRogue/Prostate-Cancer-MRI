@@ -3,8 +3,8 @@ import datetime
 import SimpleITK as sitk
 import pandas as pd
 from tqdm import tqdm
-from center_crop import crop
 from nnunetv2.dataset_conversion.generate_dataset_json import generate_dataset_json
+from preprocessing import preprocess
 
 
 T2_SEQ = 0
@@ -54,33 +54,27 @@ def process_case(case_path, case_number, images_dir, labels_dir):
     dwi_out_path = os.path.join(images_dir, get_image_filename(case_number, DWI_SEQ))
     adc_tumor_reader1_out_path = os.path.join(labels_dir, get_label_filename(case_number))
 
-    if os.path.exists(t2_path):
-        sitk.WriteImage(crop(sitk.ReadImage(t2_path), (.25, .25, .0)), t2_out_path)
-    else:
+    if not os.path.exists(t2_path):
         raise FileNotFoundError(f'No T2w file found for case {case_number}!')
 
     reference = sitk.ReadImage(t2_path)
 
-    def preprocess(img_path, out_path):
-        target = sitk.ReadImage(img_path)
-        resampled = sitk.Resample(target, reference)
-        cropped = crop(resampled, (.25, .25, .0))
-        sitk.WriteImage(cropped, out_path)
+    preprocess(t2_path, t2_out_path)
 
     if os.path.exists(adc_path):
-        preprocess(adc_path, adc_out_path)
+        preprocess(adc_path, adc_out_path, reference=reference)
     else:
         raise FileNotFoundError(f'No ADC file found for case {case_number}!')
 
     if os.path.exists(dwi_path):
-        preprocess(dwi_path, dwi_out_path)
+        preprocess(dwi_path, dwi_out_path, reference=reference)
     else:
         raise FileNotFoundError(f'No DWI file found for case {case_number}!')
 
     if os.path.exists(adc_tumor_reader1_path):
-        preprocess(adc_tumor_reader1_path, adc_tumor_reader1_out_path)
+        preprocess(adc_tumor_reader1_path, adc_tumor_reader1_out_path, reference=reference, mode=sitk.sitkNearestNeighbor)
     elif os.path.exists(adc_tumor_reader_1_empty_path):
-        preprocess(adc_tumor_reader_1_empty_path, adc_tumor_reader1_out_path)
+        preprocess(adc_tumor_reader_1_empty_path, adc_tumor_reader1_out_path, reference=reference, mode=sitk.sitkNearestNeighbor)
     else:
         raise FileNotFoundError(f'No ADC Tumor Reader file found for case {case_number}!')
 
@@ -114,6 +108,4 @@ if __name__ == "__main__":
         },
         dataset_name=f'Dataset158_Prostate158_{datetime.datetime.now()}',
         num_training_cases=139,
-
     )
-

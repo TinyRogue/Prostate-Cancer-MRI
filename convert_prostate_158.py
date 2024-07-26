@@ -1,5 +1,5 @@
 import os
-import shutil
+import datetime
 import SimpleITK as sitk
 import pandas as pd
 from tqdm import tqdm
@@ -55,7 +55,7 @@ def process_case(case_path, case_number, images_dir, labels_dir):
     adc_tumor_reader1_out_path = os.path.join(labels_dir, get_label_filename(case_number))
 
     if os.path.exists(t2_path):
-        shutil.copy(t2_path, t2_out_path)
+        sitk.WriteImage(crop(sitk.ReadImage(t2_path), (.25, .25, .0)), t2_out_path)
     else:
         raise FileNotFoundError(f'No T2w file found for case {case_number}!')
 
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             "background": 0,
             "tumor": 1,
         },
-        dataset_name='Dataset158_Prostate158',
+        dataset_name=f'Dataset158_Prostate158_{datetime.datetime.now()}',
         num_training_cases=139,
 
     )
